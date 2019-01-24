@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import traceback
 
 def generateStopWords(filepath):
 	stopWords = set()
@@ -65,17 +66,17 @@ def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVect
 		if word != analogousTo:
 			analogyResults[word] = np.dot(environmentVectors[word],	environmentVectors[analogousTo] * f)
 
-	for key, value in analogyResults.items():
-	    if value > 4000:
-	        print(key, value)
+	# for key, value in analogyResults.items():
+	#     if value > 4000:
+	#         print(key, value)
 
-	print(analogyResults)
+	# print(analogyResults)
 	results = []
 	for i in range(numResults):
 		word = max(analogyResults, key=analogyResults.get)
 
+		results.append((word, analogyResults[word]))
 		analogyResults.pop(word)
-		results.append(word)
 
 	return results
 
@@ -85,11 +86,42 @@ if __name__ == "__main__":
 	environmentVectors = {}
 	lexicalVectors = {}
 
-	# posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test.txt', posVectors, environmentVectors, lexicalVectors, stopWords)
-
-	# result = grabAnalogy('industrial', 'senior', 'average', lexicalVectors, environmentVectors, 4)
-	# print("analogy of industrial:average is points:", result)
-
-	print(os.listdir("data/wsj"))
 	# result = grabAnalogy('dog', 'cat', 'purr', lexicalVectors, environmentVectors)
 	# print("analogy of cat:purr is dog:", result)
+
+	# posVectors, environmentVectors, lexicalVectors = addTreeBank('data/wsjExerpt.txt', posVectors, environmentVectors, lexicalVectors, stopWords)
+	# results = grabAnalogy('industrial', 'senior', 'average', lexicalVectors, environmentVectors, 4)
+	# print("analogy of industrial:average is points:")
+	# for result in results:
+	# 	print(result)
+
+	for folder in os.listdir("data/wsj"):
+		for file in os.listdir("data/wsj/" + str(folder)):
+			posVectors, environmentVectors, lexicalVectors = addTreeBank("data/wsj/" + str(folder) + "/" + file, posVectors, environmentVectors, lexicalVectors, stopWords)
+			print("done with", "data/wsj/" + str(folder) + "/" + file)
+		print("\n\nFOLDER", folder, "done\n\n")
+
+	print("Done loading treebanks!")
+	print("----------------------------------------------\n\n\n")
+	print("Format: concept1: idea1 :: concept2: idea2.")
+	print("\n\n\n----------------------------------------------")
+
+	keepRolling = True
+	transpose = False
+
+	while keepRolling:
+		concept1 = input("Please enter concept1: \n").lower()
+		idea1 = input("Please enter idea1: \n").lower()
+		concept2 = input("Please enter concept2: \n").lower()
+		numResults = input("How many results?\n")
+
+		try:
+			results = grabAnalogy(concept1, concept2, idea1, lexicalVectors, environmentVectors, int(numResults))
+			print(concept1 + ": " + idea1 + " :: " + concept2 + ": \n")
+			for result in results:
+				print(result)
+
+		except Exception:
+		    traceback.print_exc()
+		
+		print("\n")
