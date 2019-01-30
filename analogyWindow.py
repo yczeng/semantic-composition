@@ -14,15 +14,16 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 
 	parsedTree = ""
 	for count, line in enumerate(text):
-		if "(. .)" not in line and "(. ?)" not in line:
-			parsedTree += line
+
+		parsedTree += line
+		if "(. .)" not in line and "(: ;)" not in line and "(. ?)" not in line:
 			continue
 
 		# the end of the parsedTree has been reached
 		tokenized = list(filter(None, parsedTree.replace("\n", "").split(" ")))
 
 		# saves words and their part of speech
-		wordsToSave = {}
+		wordsToSave = [] # FLAG... need to maintain order
 		for count, token in enumerate(tokenized):
 
 			# if there is a lowercase letter, there's a word
@@ -32,27 +33,45 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 				# print(pos, word)
 
 				if word not in stopwords:
-					wordsToSave[word] = pos
+					wordsToSave.append((word, pos)) # FLAG... need to maintain order
 					if word not in environmentVectors:
 						environmentVectors[word] = np.random.choice([-1, 1], size=10000)
 
 		# print(wordsToSave)
 		# addes context vectors * part of speech vector
-		saveToLexical = wordsToSave.copy()
-		for word in wordsToSave:
+		for index in range(len(wordsToSave)):
+			word = wordsToSave[index][0]
 
 			if word not in lexicalVectors:
 				lexicalVectors[word] = np.zeros(10000)
 
-			saveToLexical.pop(word)
-			for contextWord in saveToLexical:
-				# generate random vectors for part of speech
-				if saveToLexical[contextWord] not in posVectors:
-					posVectors[saveToLexical[contextWord]] = np.random.choice([-1, 1], size=10000)
 
-				lexicalVectors[word] += environmentVectors[contextWord] * posVectors[saveToLexical[contextWord]]
+			windowSize = 100
+			# try getting the left hand side word into lexicalVector
+			try:
+				for n in range(windowSize):
+					leftHandWord = wordsToSave[index-windowSize][0]
+					leftHandPos = wordsToSave[index-windowSize][1]
 
-			saveToLexical[word] = wordsToSave[word]
+					if leftHandPos not in posVectors:
+						posVectors[leftHandPos] = np.random.choice([-1, 1], size=10000)
+
+					lexicalVectors[word] += environmentVectors[leftHandWord] * posVectors[leftHandPos]
+			except:
+				pass
+
+			# try getting the right hand side into lexicalVector
+			try:
+				for n in range(windowSize):
+					rightHandWord = wordsToSave[index+windowSize][0]
+					rightHandPos = wordsToSave[index+windowSize][1]
+
+					if rightHandPos not in posVectors:
+						posVectors[rightHandPos] = np.random.choice([-1, 1], size=10000)
+
+					lexicalVectors[word] += environmentVectors[rightHandWord] * posVectors[rightHandPos]
+			except:
+				pass
 
 		parsedTree = ""
 
@@ -87,28 +106,26 @@ if __name__ == "__main__":
 	lexicalVectors = {}
 
 	# posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test.txt', posVectors, environmentVectors, lexicalVectors, stopWords)
-	# result = grabAnalogy('dog', 'cat', 'bark', lexicalVectors, environmentVectors)
-	# print("Dog : Bark : : Cat :", result)
+	# result = grabAnalogy('dog', 'cat', 'purr', lexicalVectors, environmentVectors)
+	# print("analogy of cat:purr is dog:", result)
 
 	# posVectors, environmentVectors, lexicalVectors = addTreeBank('data/wsjExerpt.txt', posVectors, environmentVectors, lexicalVectors, stopWords)
-	# results = grabAnalogy('industrial', 'senior', 'average', lexicalVectors, environmentVectors, 4)
+	# results = grabAnalogy('trader', 'official', 'veteran', lexicalVectors, environmentVectors, 4)
 	# print("analogy of industrial:average is points:")
 	# for result in results:
 	# 	print(result)
+
+	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/bnc_1000_gold_trees_09', posVectors, environmentVectors, lexicalVectors, stopWords)
 
 	# count = 0
 	# for folder in os.listdir("data/wsj"):
 	# 	for file in os.listdir("data/wsj/" + str(folder)):
 	# 		posVectors, environmentVectors, lexicalVectors = addTreeBank("data/wsj/" + str(folder) + "/" + file, posVectors, environmentVectors, lexicalVectors, stopWords)
 	# 		print("done with", "data/wsj/" + str(folder) + "/" + file)
-
-	# 		count += 1
-	# 		if count == 3:
-	# 			break
-
 	# 	print("\n\nFOLDER", folder, "done\n\n")
-		
-	# 	break
+	# 	count += 1
+	# 	if count == 3:
+	# 		break
 
 	addTreeBank('data/bnc_1000_gold_trees_09', posVectors, environmentVectors, lexicalVectors, stopWords)
 
@@ -116,27 +133,16 @@ if __name__ == "__main__":
 	f = lexicalVectors["composers"]
 
 	for word in environmentVectors:
-		results[word] = np.dot(environmentVectors[word], lexicalVectors["composers"] * posVectors["NN"])
+		results[word] = np.dot(environmentVectors[word],	lexicalVectors["composers"] * posVectors["NN"])
 
 	newResults = []
-	for i in range(5):
+	for i in range(10):
 		word = max(results, key=results.get)
 
 		newResults.append((word, results[word]))
 		results.pop(word)
 
 	print(newResults)
-
-	# [('melody', 11260.0), ('music', 10592.0), ('century', 10580.0), ('material', 10492.0), ('group', 10132.0)]
-
-	# with open('output/vectors.txt', 'w') as writeLexicon:
-	# 	for vector in lexicalVectors:
-	# 		string = str(vector)
-	# 		for number in lexicalVectors[vector]:
-	# 			string += " " + str(number)
-	# 		writeLexicon.write(string + "\n")
-
-	# posVectors, environmentVectors, lexicalVectors = addTreeBank('data/bnc_1000_gold_trees_09', posVectors, environmentVectors, lexicalVectors, stopWords)
 
 	# print("Done loading treebanks!")
 	# print("----------------------------------------------\n\n\n")
@@ -162,3 +168,11 @@ if __name__ == "__main__":
 	# 	    traceback.print_exc()
 		
 	# 	print("\n")
+
+
+	# with open('output/vectors.txt', 'w') as writeLexicon:
+	# 	for vector in lexicalVectors:
+	# 		string = str(vector)
+	# 		for number in lexicalVectors[vector]:
+	# 			string += " " + str(number)
+	# 		writeLexicon.write(string + "\n")

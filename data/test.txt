@@ -7,18 +7,6 @@
           (VP (VB bark)
             (PP (IN at)
               (NP (NN night)))))))))
-
-    (. .) ))
-(ROOT
-  (S
-    (NP (DT the) (NN dog))
-    (VP (VBZ likes)
-      (S
-        (VP (TO to)
-          (VP (VB bark)
-            (PP (IN at)
-              (NP (NN night)))))))))
-
     (. .) ))
 (ROOT
   (S

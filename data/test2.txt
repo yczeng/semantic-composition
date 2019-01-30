@@ -1,0 +1,15 @@
+(ROOT
+  (S
+    (NP (DT The) (NN dog))
+    (VP (VBD bit)
+      (NP (DT the) (NN cat)))
+    (. .)))
+
+(ROOT
+  (S
+    (NP (DT The) (NN cat))
+    (VP (VBD was)
+      (VP (VBN bitten)
+        (PP (IN by)
+          (NP (DT the) (NN dog)))))
+    (. .)))
