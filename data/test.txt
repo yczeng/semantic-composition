@@ -6,7 +6,7 @@
         (VP (TO to)
           (VP (VB bark)
             (PP (IN at)
-              (NP (NN night)))))))))
+              (NP (NN night)))))))
     (. .) ))
 (ROOT
   (S
@@ -16,5 +16,5 @@
         (VP (TO to)
           (VP (VB meow)
             (CC and)
-            (VB purr)))))))
+            (VB purr)))))
     (. .) ))

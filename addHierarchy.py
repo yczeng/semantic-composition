@@ -24,52 +24,120 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 		# print("hi")
 		# the end of the parsedTree has been reached
 		print(parsedTree)
-		left = 0
-		right = 0
+		depth = 0
 
 		parsedTree = parsedTree.split("\n")
-		print(parsedTree)
+		# print(parsedTree)
+
+		sequence = []
+		sentenceTuple = []
+		for line in parsedTree:
+			tokenizedLine = list(filter(None, line.replace("\n", "").split(" ")))
+			# print(tokenizedLine)
+			oldDepth = 0
+			for count, item in enumerate(tokenizedLine):
+				depth += item.count("(")
+				depth -= item.count(")")
+				# print(depthDict)
+				
+				word = item.replace(")", "").replace(" ", "").lower()
+				if any(letter.islower() for letter in item) and word not in stopwords:
+					pos = tokenizedLine[count-1].replace("(", "").replace(" ", "")
+					# print(pos, word, oldDepth)
+					sentenceTuple.append((word, pos, sequence))
+					sequence = []
+					print(word, oldDepth)
+
+				if word not in stopwords:		
+					sequence.append(depth)
+				else:
+					sequence = sequence[:-1]
+				
+				oldDepth = depth
+				# if word not in stopwords:
+				# 	wordsToSave[word] = pos
+				# 	if word not in environmentVectors:
+				# 		environmentVectors[word] = np.random.choice([-1, 1], size=10000)
+
+		print(sentenceTuple)
+
+		movement = []
+		for i in range(len(sentenceTuple)):
+			word = sentenceTuple[i][0]
+			pos = sentenceTuple[i][1]
+			sequencePosition = sentenceTuple[i][2]
+			if word not in environmentVectors:
+				environmentVectors[word] = np.random.choice([-1, 1], size=10000)
+
+			firstOne = True
+			for j in range(1, len(sentenceTuple)):
+				# count is the difference between last parenthesi count and next count.
+
+				count = sequencePosition[-1] - sentenceTuple[j][2][0]
+
+				upCount = 0
+				# how many steps you have to go up
+				for x in range(count):
+					if not firstOne:
+						upCount += 1
+					else:
+						movement.append("up")
+				# how many items left in the sequence... to go down.
+				for x in range(len(sentenceTuple[j][2]) - 1):
+					while upCount != 0:
+						upCount -= 1
+						
+					movement.append("down")
+
+				print(sentenceTuple[j][0], movement)
+				# the last down is always useless because it just brings you to the word...
+				movement = movement [:-1]
+				firstOne = False
+				# movement = []
+
+			firstOne = True
+			break
 
 		exit()
 
-		tokenized = list(filter(None, parsedTree.replace("\n", "").split(" ")))
-		print(tokenized)
-		# exit()
+		# tokenized = list(filter(None, parsedTree.replace("\n", "").split(" ")))
+		# print(tokenized)
+		# # exit()
 
-		# saves words and their part of speech
-		wordsToSave = {}
-		for count, token in enumerate(tokenized):
+		# # saves words and their part of speech
+		# wordsToSave = {}
+		# for count, token in enumerate(tokenized):
 
-			# if there is a lowercase letter, there's a word
-			if any(letter.islower() for letter in token):
-				pos = tokenized[count-1].replace("(", "").replace(" ", "")
-				word = token.replace(")", "").replace(" ", "").lower()
-				# print(pos, word)
+		# 	# if there is a lowercase letter, there's a word
+		# 	if any(letter.islower() for letter in token):
+		# 		pos = tokenized[count-1].replace("(", "").replace(" ", "")
+		# 		word = token.replace(")", "").replace(" ", "").lower()
+		# 		# print(pos, word)
 
-				if word not in stopwords:
-					wordsToSave[word] = pos
-					if word not in environmentVectors:
-						environmentVectors[word] = np.random.choice([-1, 1], size=10000)
+		# 		if word not in stopwords:
+		# 			wordsToSave[word] = pos
+		# 			if word not in environmentVectors:
+		# 				environmentVectors[word] = np.random.choice([-1, 1], size=10000)
 
-		# print(wordsToSave)
-		# addes context vectors * part of speech vector
-		saveToLexical = wordsToSave.copy()
-		for word in wordsToSave:
+		# # print(wordsToSave)
+		# # addes context vectors * part of speech vector
+		# saveToLexical = wordsToSave.copy()
+		# for word in wordsToSave:
 
-			if word not in lexicalVectors:
-				lexicalVectors[word] = np.zeros(10000)
+		# 	if word not in lexicalVectors:
+		# 		lexicalVectors[word] = np.zeros(10000)
 
-			saveToLexical.pop(word)
-			for contextWord in saveToLexical:
-				# generate random vectors for part of speech
-				if saveToLexical[contextWord] not in posVectors:
-					posVectors[saveToLexical[contextWord]] = np.random.choice([-1, 1], size=10000)
+		# 	saveToLexical.pop(word)
+		# 	for contextWord in saveToLexical:
+		# 		# generate random vectors for part of speech
+		# 		if saveToLexical[contextWord] not in posVectors:
+		# 			posVectors[saveToLexical[contextWord]] = np.random.choice([-1, 1], size=10000)
 
-				lexicalVectors[word] += environmentVectors[contextWord] * posVectors[saveToLexical[contextWord]]
+		# 		lexicalVectors[word] += environmentVectors[contextWord] * posVectors[saveToLexical[contextWord]]
 
-			saveToLexical[word] = wordsToSave[word]
+		# 	saveToLexical[word] = wordsToSave[word]
 
-		parsedTree = ""
+		# parsedTree = ""
 
 	text.close()
 	return posVectors, environmentVectors, lexicalVectors
