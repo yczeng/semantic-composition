@@ -24,6 +24,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 		# the end of the parsedTree has been reached
 		print(parsedTree)
 		depth = 0
+		oldDepth = 0
 
 		parsedTree = parsedTree.split("\n")
 
@@ -32,7 +33,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 		for line in parsedTree:
 			tokenizedLine = list(filter(None, line.replace("\n", "").replace(" )", ")").split(" ")))
 			# print(tokenizedLine)
-			oldDepth = 0
 			for count, item in enumerate(tokenizedLine):
 				depth += item.count("(")
 				depth -= item.count(")")
@@ -52,14 +52,17 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 
 					#reset sequence for next
 					sequence = []
-					# print(word, oldDepth)
-				sequence.append(depth)
-				oldDepth = depth
+					oldDepth = 0
+				
+				if depth > oldDepth:
+					sequence.append(depth)
+					oldDepth = depth
 
 		print(sentenceTuple)
 
 		# goal instead of getting everything at once, just get the words to work in sequence with each other
 
+		movementResults = {}
 		for i in range(1, len(sentenceTuple)):
 			firstWord = sentenceTuple[i-1][0]
 			firstSequence = sentenceTuple[i-1][2]
@@ -68,8 +71,16 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 			secondSequence = sentenceTuple[i][2]
 
 			count = firstSequence[-1] - secondSequence[0]
-			print(count)
+			movement = []
 
+			for x in range(count):
+				movement.append("up")
+			for x in range(len(secondSequence) - 1):
+				movement.append("down")
+
+			movementResults[firstWord + " " + secondWord] = movement
+
+		print(movementResults)
 		exit()
 		text.close()
 	return posVectors, environmentVectors, lexicalVectors
