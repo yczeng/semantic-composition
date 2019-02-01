@@ -57,6 +57,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 				oldDepth = depth
 
 		print(sentenceTuple)
+		exit()
 
 		movementResults = []
 		movementResultsDict = {}
