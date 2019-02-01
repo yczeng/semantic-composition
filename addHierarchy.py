@@ -15,7 +15,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 
 	parsedTree = ""
 	for count, line in enumerate(text):
-		# print(line)
+		print(line)
 		parsedTree += line
 
 		if "(. .)" not in line and "(. ?)" not in line:
@@ -121,23 +121,13 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 					# the last down is always unecessary
 					movement = movement[:-1]
 					skip = True
-					# print(movement)
-
-					# DELETE LATER
-					# count += 1
-					# print(movementResults)
-					
-					# if count == 4:
-					# 	exit()
 			
 			movement = []
 			print(movementResults)
 			# print(movementResultsDict)
 			print("\n")
 
-			# exit()
-
-		exit()
+		parsedTree = ""
 
 	text.close()
 	return posVectors, environmentVectors, lexicalVectors
