@@ -21,13 +21,11 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 		if "(. .)" not in line and "(. ?)" not in line:
 			continue
 
-		# print("hi")
 		# the end of the parsedTree has been reached
 		print(parsedTree)
 		depth = 0
 
 		parsedTree = parsedTree.split("\n")
-		# print(parsedTree)
 
 		sequence = []
 		sentenceTuple = []
@@ -38,130 +36,111 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 			for count, item in enumerate(tokenizedLine):
 				depth += item.count("(")
 				depth -= item.count(")")
-				# print(depthDict)
 				
 				word = item.replace(")", "").replace(" ", "").lower()
-				if any(letter.islower() for letter in item) and word not in stopwords:
+				if any(letter.islower() for letter in item):
 					pos = tokenizedLine[count-1].replace("(", "").replace(" ", "")
-					# print(pos, word, oldDepth)
 					sentenceTuple.append((word, pos, sequence))
-					sequence = []
-					print(word, oldDepth)
 
-				if word not in stopwords:		
-					sequence.append(depth)
-				else:
-					sequence = sequence[:-1]
-				
+					# create 10,000 dimensional vectors
+					if word not in environmentVectors:
+						environmentVectors[word] = np.random.choice([-1, 1], size=10000)
+					if word not in lexicalVectors:
+						lexicalVectors[word] = np.zeros(10000)
+					if pos not in posVectors:
+						posVectors[pos] = np.random.choice([-1, 1], size=10000)
+
+					#reset sequence for next
+					sequence = []
+					# print(word, oldDepth)
+				sequence.append(depth)
 				oldDepth = depth
-				# if word not in stopwords:
-				# 	wordsToSave[word] = pos
-				# 	if word not in environmentVectors:
-				# 		environmentVectors[word] = np.random.choice([-1, 1], size=10000)
 
 		print(sentenceTuple)
 
+		movementResults = []
+		movementResultsDict = {}
 		movement = []
+
+		count = 0
 		for i in range(len(sentenceTuple)):
 			word = sentenceTuple[i][0]
 			pos = sentenceTuple[i][1]
-			sequencePosition = sentenceTuple[i][2]
-			if word not in environmentVectors:
-				environmentVectors[word] = np.random.choice([-1, 1], size=10000)
+			sequence = sentenceTuple[i][2]
+
+			print(word, pos, sequence)
 
 			firstOne = True
-			for j in range(1, len(sentenceTuple)):
-				# count is the difference between last parenthesi count and next count.
+			skip = False
+			for j in range(len(sentenceTuple)):
+				secondWord = sentenceTuple[j][0]
+				print(word, secondWord)
+				# not the same word, then skip
+				if secondWord == word:
+					continue
+				secondSequence = sentenceTuple[j][2]
 
-				count = sequencePosition[-1] - sentenceTuple[j][2][0]
+				# if second word comes before first word and is already stored.
+				testFlipped = secondWord + " " + word
+				if testFlipped in movementResultsDict:
+					print("THIS SHOULD NOT HAVE TRIGGERED")
+					newMovement = []
+					for eachMotion in movementResultsDict[testFlipped]:
+						if eachMotion == "up":
+							newMovement = ['down'] + newMovement
+						else:
+							newMovement = ['up'] + newMovement
 
-				upCount = 0
-				# how many steps you have to go up
-				for x in range(count):
-					if not firstOne:
-						upCount += 1
-					else:
-						movement.append("up")
-				# how many items left in the sequence... to go down.
-				for x in range(len(sentenceTuple[j][2]) - 1):
-					while upCount != 0:
-						upCount -= 1
-						
-					movement.append("down")
+					# REPLACE THIS WITH THE 10K DIMENSIONAL VECTORS
+					movementResults.append((word, secondWord, newMovement))
 
-				print(sentenceTuple[j][0], movement)
-				# the last down is always useless because it just brings you to the word...
-				movement = movement [:-1]
-				firstOne = False
-				# movement = []
+				# It hasn't been stored yet, need to generate
+				else:
+					# last depth - new depth
+					count = sentenceTuple[j-1][2][-1] - sentenceTuple[j][2][0]
+					# print(count)
+					if count < 0:
+						continue
 
-			firstOne = True
-			break
+					upCount = 0
+					# how many steps you have to go up
+					for x in range(count):
+						if skip:
+							skip = False
+						else:
+							movement.append("up")
+
+					# len - 1 = how many times it goes down
+					for x in range(len(secondSequence) - 1):
+						movement.append("down")
+
+					tmpMovement = movement.copy()
+					movementResults.append((word, secondWord, tmpMovement))
+					movementResultsDict[word + " " + secondWord] = movement
+
+					# the last down is always unecessary
+					movement = movement[:-1]
+					skip = True
+					# print(movement)
+
+					# DELETE LATER
+					# count += 1
+					# print(movementResults)
+					
+					# if count == 4:
+					# 	exit()
+			
+			movement = []
+			print(movementResults)
+			# print(movementResultsDict)
+			print("\n")
+
+			# exit()
 
 		exit()
 
-		# tokenized = list(filter(None, parsedTree.replace("\n", "").split(" ")))
-		# print(tokenized)
-		# # exit()
-
-		# # saves words and their part of speech
-		# wordsToSave = {}
-		# for count, token in enumerate(tokenized):
-
-		# 	# if there is a lowercase letter, there's a word
-		# 	if any(letter.islower() for letter in token):
-		# 		pos = tokenized[count-1].replace("(", "").replace(" ", "")
-		# 		word = token.replace(")", "").replace(" ", "").lower()
-		# 		# print(pos, word)
-
-		# 		if word not in stopwords:
-		# 			wordsToSave[word] = pos
-		# 			if word not in environmentVectors:
-		# 				environmentVectors[word] = np.random.choice([-1, 1], size=10000)
-
-		# # print(wordsToSave)
-		# # addes context vectors * part of speech vector
-		# saveToLexical = wordsToSave.copy()
-		# for word in wordsToSave:
-
-		# 	if word not in lexicalVectors:
-		# 		lexicalVectors[word] = np.zeros(10000)
-
-		# 	saveToLexical.pop(word)
-		# 	for contextWord in saveToLexical:
-		# 		# generate random vectors for part of speech
-		# 		if saveToLexical[contextWord] not in posVectors:
-		# 			posVectors[saveToLexical[contextWord]] = np.random.choice([-1, 1], size=10000)
-
-		# 		lexicalVectors[word] += environmentVectors[contextWord] * posVectors[saveToLexical[contextWord]]
-
-		# 	saveToLexical[word] = wordsToSave[word]
-
-		# parsedTree = ""
-
 	text.close()
 	return posVectors, environmentVectors, lexicalVectors
-
-def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVectors, numResults=1):
-	f = lexicalVectors[concept1] * lexicalVectors[concept2]
-	analogyResults = {}
-	for word in environmentVectors:
-		if word != analogousTo:
-			analogyResults[word] = np.dot(environmentVectors[word],	environmentVectors[analogousTo] * f)
-
-	# for key, value in analogyResults.items():
-	#     if value > 4000:
-	#         print(key, value)
-
-	# print(analogyResults)
-	results = []
-	for i in range(numResults):
-		word = max(analogyResults, key=analogyResults.get)
-
-		results.append((word, analogyResults[word]))
-		analogyResults.pop(word)
-
-	return results
 
 if __name__ == "__main__":
 	stopWords = generateStopWords('stopwords.txt')
