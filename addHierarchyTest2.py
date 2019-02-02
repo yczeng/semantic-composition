@@ -9,7 +9,7 @@ def generateStopWords(filepath):
 			stopWords.add(line.replace("\n", ""))
 	return stopWords
 
-def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
+def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVector, downVector):
 	text = open(filePath)
 
 	parsedTree = ""
@@ -21,7 +21,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 
 		print(parsedTree)
 		# the end of the parsedTree has been reached
-		# print(parsedTree)
 		depth = 0
 		oldDepth = 0
 
@@ -33,8 +32,11 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 		# For each nonunique word, returns the original word
 		nonUniqueWords = {}
 
+		# sequence is parenthesis pops / pushes
 		sequence = []
+		# list of all the words, pos, and 
 		sentenceTuple = []
+		
 		for line in parsedTree:
 			tokenizedLine = list(filter(None, line.replace("\n", "").replace(" )", ")").split(" ")))
 			# print(tokenizedLine)
@@ -76,8 +78,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 
 		# print(sentenceTuple)
 
-		# goal instead of getting everything at once, just get the words to work in sequence with each other
-
 		count = 0
 		movementResults = {}
 		for i in range(1, len(sentenceTuple)):
@@ -98,7 +98,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 			movementResults[firstWord + " " + secondWord] = movement
 
 		for i in range(len(sentenceTuple)):
-
 			for j in range(len(sentenceTuple)):
 
 				firstWord = sentenceTuple[i][0]
@@ -108,9 +107,9 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 				if firstWord == secondWord or (firstWord + " " + secondWord) in movementResults:
 					continue
 
+				# check if flipped exists
 				elif secondWord + " " + firstWord in movementResults:
 					newMovement = []
-
 					for direction in movementResults[secondWord + " " + firstWord]:
 						if direction == "up":
 							newMovement = ['down'] + newMovement
@@ -123,17 +122,9 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 					# print(firstWord + " " + secondWord)
 					savedSequence = []
 					
-					# =============== SEQUENCE 1 ==================
 					pairQueried1 = sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]
+					getSequence1 = movementResults[pairQueried1]
 
-					# probes query result for repeat words that has different sequences
-					queryResult1 = movementResults[pairQueried1]
-
-					# print(pairQueried1)
-					# print(queryResult1)
-					getSequence1 = queryResult1
-
-					# =============== SEQUENCE 2 ==================
 					pairQueried2 = sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]
 					if pairQueried2 in movementResults:
 						queryResult2 = movementResults[pairQueried2]
@@ -144,11 +135,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 								queryResult2 = movementResults[sentenceTuple[j-1][0] + " " + wordWithIndex]
 								break
 
-					# print(pairQueried2)
-					# print(queryResult2)
 					getSequence2 = queryResult2
-
-					# =============================================
 
 					downCount = 0
 					for count, upDown in enumerate(getSequence1):
@@ -161,23 +148,12 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 							upCount += 1
 
 					minUpDown = min(upCount, downCount)
-					# print(minUpDown)
-
-					# i.e. if downCount = 3, then 3 items need to be skipped, so start on 3rd index
 					getSequence1 = getSequence1[:-minUpDown]
-					# print("chopped getSequence1", getSequence1)
-
 					getSequence2 = getSequence2[minUpDown:]
-					# print("chopped getSequence2", getSequence2)
-
 					savedSequence = getSequence1 + getSequence2
-
-					# print("result", savedSequence)
-					# print("\n")
-
 					movementResults[firstWord + " " + secondWord] = savedSequence
 
-		print("MOVEMENT RESULTS", movementResults)
+		# print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
 	
 	text.close()
@@ -187,5 +163,7 @@ if __name__ == "__main__":
 	posVectors = {}
 	environmentVectors = {}
 	lexicalVectors = {}
+	upVector = np.random.choice([-1, 1], size=10000)
+	downVector = np.random.choice([-1, 1], size=10000)
 
-	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test2.txt', posVectors, environmentVectors, lexicalVectors)
+	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test2.txt', posVectors, environmentVectors, lexicalVectors, upVector, downVector)
