@@ -36,7 +36,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 		sequence = []
 		# list of all the words, pos, and 
 		sentenceTuple = []
-		
+
 		for line in parsedTree:
 			tokenizedLine = list(filter(None, line.replace("\n", "").replace(" )", ")").split(" ")))
 			# print(tokenizedLine)
@@ -80,8 +80,11 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 
 		count = 0
 		movementResults = {}
+
+		# stores sequences first
 		for i in range(1, len(sentenceTuple)):
 			firstWord = sentenceTuple[i-1][0]
+			firstWordPos = sentenceTuple[i-1][1]
 			firstSequence = sentenceTuple[i-1][2]
 
 			secondWord = sentenceTuple[i][0]
@@ -89,13 +92,40 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 
 			count = firstSequence[-1] - secondSequence[0]
 			movement = []
+			movementVector = None
+			upDownCount = 0
 
 			for x in range(count):
+
+				if movementVector == None:
+					movementVector = upVector
+					upDownCount += 1
+				else:
+					movementVector *= np.concatenate([upVector[upDownCount:], upVector[:upDownCount]])
+					upDownCount += 1
+
 				movement.append("up")
 			for x in range(len(secondSequence) - 1):
+
+				if movementVector == None:
+					movementVector = downVector
+					upDownCount += 1
+				else:
+					movementVector *= np.concatenate([downVector[upDownCount:], downVector[:upDownCount]])
+					upDownCount += 1
+
 				movement.append("down")
 
 			movementResults[firstWord + " " + secondWord] = movement
+			# add to high dimensional vectors also here.
+
+			if firstWord in nonUniqueWords:
+				firstWord = nonUniqueWords[firstWord]
+				print(firstWord)
+			if secondWord in nonUniqueWords:
+				secondWord = nonUniqueWords[secondWord]
+
+			lexicalVectors[firstWord] += environmentVectors[secondWord] * posVectors[firstWordPos] * movementVector
 
 		for i in range(len(sentenceTuple)):
 			for j in range(len(sentenceTuple)):
@@ -153,7 +183,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 					savedSequence = getSequence1 + getSequence2
 					movementResults[firstWord + " " + secondWord] = savedSequence
 
-		# print("MOVEMENT RESULTS", movementResults)
+		print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
 	
 	text.close()
