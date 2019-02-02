@@ -19,6 +19,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 		if "(. .)" not in line and "(. ?)" not in line and "(: :)" not in line:
 			continue
 
+		print(parsedTree)
 		# the end of the parsedTree has been reached
 		# print(parsedTree)
 		depth = 0
@@ -36,7 +37,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 		sentenceTuple = []
 		for line in parsedTree:
 			tokenizedLine = list(filter(None, line.replace("\n", "").replace(" )", ")").split(" ")))
-			print(tokenizedLine)
+			# print(tokenizedLine)
 
 			for count, item in enumerate(tokenizedLine):
 				depth += item.count("(")
@@ -119,7 +120,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 					movementResults[firstWord + " " + secondWord] = newMovement
 
 				else:
-					print(firstWord + " " + secondWord)
+					# print(firstWord + " " + secondWord)
 					savedSequence = []
 					
 					# =============== SEQUENCE 1 ==================
@@ -128,8 +129,8 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 					# probes query result for repeat words that has different sequences
 					queryResult1 = movementResults[pairQueried1]
 
-					print(pairQueried1)
-					print(queryResult1)
+					# print(pairQueried1)
+					# print(queryResult1)
 					getSequence1 = queryResult1
 
 					# =============== SEQUENCE 2 ==================
@@ -143,8 +144,8 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 								queryResult2 = movementResults[sentenceTuple[j-1][0] + " " + wordWithIndex]
 								break
 
-					print(pairQueried2)
-					print(queryResult2)
+					# print(pairQueried2)
+					# print(queryResult2)
 					getSequence2 = queryResult2
 
 					# =============================================
@@ -160,23 +161,23 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 							upCount += 1
 
 					minUpDown = min(upCount, downCount)
-					print(minUpDown)
+					# print(minUpDown)
 
 					# i.e. if downCount = 3, then 3 items need to be skipped, so start on 3rd index
 					getSequence1 = getSequence1[:-minUpDown]
-					print("chopped getSequence1", getSequence1)
+					# print("chopped getSequence1", getSequence1)
 
 					getSequence2 = getSequence2[minUpDown:]
-					print("chopped getSequence2", getSequence2)
+					# print("chopped getSequence2", getSequence2)
 
 					savedSequence = getSequence1 + getSequence2
 
-					print("result", savedSequence)
-					print("\n")
+					# print("result", savedSequence)
+					# print("\n")
 
 					movementResults[firstWord + " " + secondWord] = savedSequence
 
-		print(movementResults)
+		print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
 	
 	text.close()
@@ -187,4 +188,4 @@ if __name__ == "__main__":
 	environmentVectors = {}
 	lexicalVectors = {}
 
-	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test.txt', posVectors, environmentVectors, lexicalVectors)
+	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test2.txt', posVectors, environmentVectors, lexicalVectors)
