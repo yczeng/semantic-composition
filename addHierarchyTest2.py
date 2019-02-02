@@ -15,14 +15,14 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 
 	parsedTree = ""
 	for count, line in enumerate(text):
-		print(line)
+		# print(line)
 		parsedTree += line
 
 		if "(. .)" not in line and "(. ?)" not in line:
 			continue
 
 		# the end of the parsedTree has been reached
-		print(parsedTree)
+		# print(parsedTree)
 		depth = 0
 		oldDepth = 0
 
@@ -62,6 +62,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 
 		# goal instead of getting everything at once, just get the words to work in sequence with each other
 
+		count = 0
 		movementResults = {}
 		for i in range(1, len(sentenceTuple)):
 			firstWord = sentenceTuple[i-1][0]
@@ -79,6 +80,98 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 				movement.append("down")
 
 			movementResults[firstWord + " " + secondWord] = movement
+
+		for i in range(len(sentenceTuple)):
+
+			for j in range(len(sentenceTuple)):
+
+				firstWord = sentenceTuple[i][0]
+				secondWord = sentenceTuple[j][0]
+
+				# check that it's not the same word
+				if firstWord == secondWord or (firstWord + " " + secondWord) in movementResults:
+					continue
+
+				elif secondWord + " " + firstWord in movementResults:
+					newMovement = []
+
+					for direction in movementResults[secondWord + " " + firstWord]:
+						if direction == "up":
+							newMovement = ['down'] + newMovement
+						else:
+							newMovement = ['up'] + newMovement
+
+					movementResults[firstWord + " " + secondWord] = newMovement
+
+				else:
+
+					sequence1Base = False
+					sequence2Base = False
+
+					print(firstWord + " " + secondWord)
+					savedSequence = []
+					
+					print(sentenceTuple[i][0] + " " + sentenceTuple[j-1][0])
+					print(movementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]])
+					getSequence1 = movementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]]
+
+					print(sentenceTuple[j-1][0] + " " + sentenceTuple[j][0])
+					print(movementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]])
+					getSequence2 = movementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]]
+
+					# saves the two cases where if one is up down, just store the other one.
+					if getSequence1 == ['up', 'down']:
+						if getSequence2 != ['up', 'down']:
+							savedSequence = getSequence2
+						# if both are up / down... then just store up/down here
+						else:
+							savedSequence = ['up', 'down']
+
+						print("result", savedSequence)
+						print("\n")
+
+					elif getSequence1 != ['up', 'down'] and getSequence2 == ['up', 'down']:
+							savedSequence = getSequence1
+
+							print("result", savedSequence)
+							print("\n")
+
+					# now both of them are not up/down, so I need to concatenate them.
+					else:
+						downCount = 0
+						for count, upDown in enumerate(getSequence1):
+							if upDown == "down":
+								downCount += 1
+
+						upCount = 0
+						for count, upDown in enumerate(getSequence2):
+							if upDown == "up":
+								upCount += 1
+
+						minUpDown = min(upCount, downCount)
+						print(minUpDown)
+
+						# i.e. if downCount = 3, then 3 items need to be skipped, so start on 3rd index
+						getSequence1 = getSequence1[:-minUpDown]
+						print("chopped getSequence1", getSequence1)
+
+						getSequence2 = getSequence2[minUpDown:]
+						print("chopped getSequence2", getSequence2)
+
+						savedSequence = getSequence1 + getSequence2
+
+						print("result", savedSequence)
+						print("\n")
+
+						count += 1
+						if count >= 7:
+							exit()
+
+					movementResults[firstWord + " " + secondWord] = savedSequence
+
+					# count += 1
+					# if count == 10:
+					# 	exit()
 
 		print(movementResults)
 		exit()
