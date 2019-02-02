@@ -80,7 +80,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 
 		count = 0
 		movementResults = {}
-		uniqueWordsMovementResults = {}
 		for i in range(1, len(sentenceTuple)):
 			firstWord = sentenceTuple[i-1][0]
 			firstSequence = sentenceTuple[i-1][2]
@@ -118,6 +117,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 						else:
 							newMovement = ['up'] + newMovement
 
+
 					movementResults[firstWord + " " + secondWord] = newMovement
 
 				else:
@@ -128,10 +128,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 					pairQueried1 = sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]
 
 					# probes query result for repeat words that has different sequences
-					if pairQueried1 in uniqueWordsMovementResults:
-						queryResult1 = uniqueWordsMovementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]]
-					else:
-						queryResult1 = movementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]]
+					queryResult1 = movementResults[pairQueried1]
 
 					print(pairQueried1)
 					print(queryResult1)
@@ -139,18 +136,14 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 
 					# =============== SEQUENCE 2 ==================
 					pairQueried2 = sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]
-
-					if pairQueried2 in uniqueWordsMovementResults:
-						queryResult2 = uniqueWordsMovementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]]
+					if pairQueried2 in movementResults:
+						queryResult2 = movementResults[pairQueried2]
 					else:
-						try:
-							queryResult2 = movementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]]
-						except:
-							for i in range(wordFrequency[sentenceTuple[j][0]]):
-								word = sentenceTuple[j][0] + str(i)
-								if sentenceTuple[j-1][0] + " " + word in uniqueWordsMovementResults:
-									queryResult2 = uniqueWordsMovementResults[sentenceTuple[j-1][0] + " " + word]
-									break
+						for i in range(wordFrequency[sentenceTuple[j][0]]):
+							word = sentenceTuple[j][0] + str(i)
+							if sentenceTuple[j-1][0] + " " + word in movementResults:
+								queryResult2 = movementResults[sentenceTuple[j-1][0] + " " + word]
+								break
 
 					print(pairQueried2)
 					print(queryResult2)
@@ -158,71 +151,34 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 
 					# =============================================
 
-					# saves the two cases where if one is up down, just store the other one.
-					if getSequence1 == ['up', 'down']:
-						if getSequence2 != ['up', 'down']:
-							savedSequence = getSequence2
-						# if both are up / down... then just store up/down here
-						else:
-							savedSequence = ['up', 'down']
+					downCount = 0
+					for count, upDown in enumerate(getSequence1):
+						if upDown == "down":
+							downCount += 1
 
-						print("result", savedSequence)
-						print("\n")
+					upCount = 0
+					for count, upDown in enumerate(getSequence2):
+						if upDown == "up":
+							upCount += 1
 
-					elif getSequence1 != ['up', 'down'] and getSequence2 == ['up', 'down']:
-							savedSequence = getSequence1
+					minUpDown = min(upCount, downCount)
+					print(minUpDown)
 
-							print("result", savedSequence)
-							print("\n")
+					# i.e. if downCount = 3, then 3 items need to be skipped, so start on 3rd index
+					getSequence1 = getSequence1[:-minUpDown]
+					print("chopped getSequence1", getSequence1)
 
-					# now both of them are not up/down, so I need to concatenate them.
-					else:
-						downCount = 0
-						for count, upDown in enumerate(getSequence1):
-							if upDown == "down":
-								downCount += 1
+					getSequence2 = getSequence2[minUpDown:]
+					print("chopped getSequence2", getSequence2)
 
-						upCount = 0
-						for count, upDown in enumerate(getSequence2):
-							if upDown == "up":
-								upCount += 1
+					savedSequence = getSequence1 + getSequence2
 
-						minUpDown = min(upCount, downCount)
-						print(minUpDown)
+					print("result", savedSequence)
+					print("\n")
 
-						# i.e. if downCount = 3, then 3 items need to be skipped, so start on 3rd index
-						getSequence1 = getSequence1[:-minUpDown]
-						print("chopped getSequence1", getSequence1)
-
-						getSequence2 = getSequence2[minUpDown:]
-						print("chopped getSequence2", getSequence2)
-
-						savedSequence = getSequence1 + getSequence2
-
-						print("result", savedSequence)
-						print("\n")
-
-						# count += 1
-						# if count >= 8:
-						# 	exit()
-
-					if firstWord in nonUniqueWords:
-						movementResults[nonUniqueWords[firstWord] + " " + secondWord] = savedSequence
-
-						# saves in order to reference it for future
-						uniqueWordsMovementResults[firstWord + " " + secondWord] = savedSequence
-
-					elif secondWord in nonUniqueWords:
-						movementResults[firstWord + " " + nonUniqueWords[secondWord]] = savedSequence
-
-
-						# saves in order to reference it for future
-						uniqueWordsMovementResults[firstWord + " " + secondWord] = savedSequence
-					else:
-						movementResults[firstWord + " " + secondWord] = savedSequence
+					movementResults[firstWord + " " + secondWord] = savedSequence
 
 		print(movementResults)
-		print(nonUniqueWords)
 		exit()
 		text.close()
 	return posVectors, environmentVectors, lexicalVectors
