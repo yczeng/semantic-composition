@@ -1,0 +1,23 @@
+( (S 
+    (NP-SBJ-1 (JJ Many) 
+      (ADJP (JJ South) (JJ Korean) )
+      (NN business) (NNS people) )
+    (VP (VBP want) 
+      (NP (DT a) (NN devaluation) )
+      (ADVP (RB instead) )
+      (, ,) 
+      (S-ADV 
+        (NP-SBJ (-NONE- *-1) )
+        (VP (VBG arguing) 
+          (SBAR (IN that) 
+            (S 
+              (NP-SBJ 
+                (NP (DT the) (VBN won) (POS 's) )
+                (JJ recent) (NNS gains) )
+              (ADVP-TMP (RB already) )
+              (VP (VBP have) 
+                (VP (VBN weakened) 
+                  (NP 
+                    (NP (DT the) (NN country) (POS 's) )
+                    (NN export) (NN performance) ))))))))
+    (. .) ))

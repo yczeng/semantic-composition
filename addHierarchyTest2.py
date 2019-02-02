@@ -11,14 +11,12 @@ def generateStopWords(filepath):
 
 def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 	text = open(filePath)
-	# print(text)
 
 	parsedTree = ""
 	for count, line in enumerate(text):
-		# print(line)
 		parsedTree += line
 
-		if "(. .)" not in line and "(. ?)" not in line:
+		if "(. .)" not in line and "(. ?)" not in line and "(: :)" not in line:
 			continue
 
 		# the end of the parsedTree has been reached
@@ -38,13 +36,14 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 		sentenceTuple = []
 		for line in parsedTree:
 			tokenizedLine = list(filter(None, line.replace("\n", "").replace(" )", ")").split(" ")))
-			# print(tokenizedLine)
+			print(tokenizedLine)
+
 			for count, item in enumerate(tokenizedLine):
 				depth += item.count("(")
 				depth -= item.count(")")
 				
-				word = item.replace(")", "").replace(" ", "").lower()
-				if any(letter.islower() for letter in item):
+				if ")" in item:
+					word = item.replace(")", "").replace(" ", "").lower()
 					pos = tokenizedLine[count-1].replace("(", "").replace(" ", "")
 
 					# makes sure words that aren't unique don't screw up the order later
@@ -74,7 +73,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 					sequence.append(depth)
 					oldDepth = depth
 
-		print(sentenceTuple)
+		# print(sentenceTuple)
 
 		# goal instead of getting everything at once, just get the words to work in sequence with each other
 
@@ -117,7 +116,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 						else:
 							newMovement = ['up'] + newMovement
 
-
 					movementResults[firstWord + " " + secondWord] = newMovement
 
 				else:
@@ -140,9 +138,9 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 						queryResult2 = movementResults[pairQueried2]
 					else:
 						for i in range(wordFrequency[sentenceTuple[j][0]]):
-							word = sentenceTuple[j][0] + str(i)
-							if sentenceTuple[j-1][0] + " " + word in movementResults:
-								queryResult2 = movementResults[sentenceTuple[j-1][0] + " " + word]
+							wordWithIndex = sentenceTuple[j][0] + str(i)
+							if sentenceTuple[j-1][0] + " " + wordWithIndex in movementResults:
+								queryResult2 = movementResults[sentenceTuple[j-1][0] + " " + wordWithIndex]
 								break
 
 					print(pairQueried2)
@@ -179,8 +177,9 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 					movementResults[firstWord + " " + secondWord] = savedSequence
 
 		print(movementResults)
-		exit()
-		text.close()
+		parsedTree = ""
+	
+	text.close()
 	return posVectors, environmentVectors, lexicalVectors
 
 if __name__ == "__main__":
@@ -188,4 +187,4 @@ if __name__ == "__main__":
 	environmentVectors = {}
 	lexicalVectors = {}
 
-	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test2.txt', posVectors, environmentVectors, lexicalVectors)
+	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test.txt', posVectors, environmentVectors, lexicalVectors)
