@@ -9,7 +9,7 @@ def generateStopWords(filepath):
 			stopWords.add(line.replace("\n", ""))
 	return stopWords
 
-def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwords):
+def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors):
 	text = open(filePath)
 	# print(text)
 
@@ -28,6 +28,12 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 
 		parsedTree = parsedTree.split("\n")
 
+		# Saves a list of unique words and their count.
+		wordFrequency = {}
+
+		# For each nonunique word, returns the original word
+		nonUniqueWords = {}
+
 		sequence = []
 		sentenceTuple = []
 		for line in parsedTree:
@@ -40,7 +46,17 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 				word = item.replace(")", "").replace(" ", "").lower()
 				if any(letter.islower() for letter in item):
 					pos = tokenizedLine[count-1].replace("(", "").replace(" ", "")
-					sentenceTuple.append((word, pos, sequence))
+
+					# makes sure words that aren't unique don't screw up the order later
+					if word not in wordFrequency:
+						wordFrequency[word] = 1
+						appendedWord = word
+					else:
+						appendedWord = word + str(wordFrequency[word])
+						wordFrequency[word] += 1
+						nonUniqueWords[appendedWord] = word
+
+					sentenceTuple.append((appendedWord, pos, sequence))
 
 					# create 10,000 dimensional vectors
 					if word not in environmentVectors:
@@ -64,6 +80,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 
 		count = 0
 		movementResults = {}
+		uniqueWordsMovementResults = {}
 		for i in range(1, len(sentenceTuple)):
 			firstWord = sentenceTuple[i-1][0]
 			firstSequence = sentenceTuple[i-1][2]
@@ -104,20 +121,42 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 					movementResults[firstWord + " " + secondWord] = newMovement
 
 				else:
-
-					sequence1Base = False
-					sequence2Base = False
-
 					print(firstWord + " " + secondWord)
 					savedSequence = []
 					
-					print(sentenceTuple[i][0] + " " + sentenceTuple[j-1][0])
-					print(movementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]])
-					getSequence1 = movementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]]
+					# =============== SEQUENCE 1 ==================
+					pairQueried1 = sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]
 
-					print(sentenceTuple[j-1][0] + " " + sentenceTuple[j][0])
-					print(movementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]])
-					getSequence2 = movementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]]
+					# probes query result for repeat words that has different sequences
+					if pairQueried1 in uniqueWordsMovementResults:
+						queryResult1 = uniqueWordsMovementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]]
+					else:
+						queryResult1 = movementResults[sentenceTuple[i][0] + " " + sentenceTuple[j-1][0]]
+
+					print(pairQueried1)
+					print(queryResult1)
+					getSequence1 = queryResult1
+
+					# =============== SEQUENCE 2 ==================
+					pairQueried2 = sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]
+
+					if pairQueried2 in uniqueWordsMovementResults:
+						queryResult2 = uniqueWordsMovementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]]
+					else:
+						try:
+							queryResult2 = movementResults[sentenceTuple[j-1][0] + " " + sentenceTuple[j][0]]
+						except:
+							for i in range(wordFrequency[sentenceTuple[j][0]]):
+								word = sentenceTuple[j][0] + str(i)
+								if sentenceTuple[j-1][0] + " " + word in uniqueWordsMovementResults:
+									queryResult2 = uniqueWordsMovementResults[sentenceTuple[j-1][0] + " " + word]
+									break
+
+					print(pairQueried2)
+					print(queryResult2)
+					getSequence2 = queryResult2
+
+					# =============================================
 
 					# saves the two cases where if one is up down, just store the other one.
 					if getSequence1 == ['up', 'down']:
@@ -163,25 +202,34 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, stopwo
 						print("result", savedSequence)
 						print("\n")
 
-						count += 1
-						if count >= 7:
-							exit()
+						# count += 1
+						# if count >= 8:
+						# 	exit()
 
-					movementResults[firstWord + " " + secondWord] = savedSequence
+					if firstWord in nonUniqueWords:
+						movementResults[nonUniqueWords[firstWord] + " " + secondWord] = savedSequence
 
-					# count += 1
-					# if count == 10:
-					# 	exit()
+						# saves in order to reference it for future
+						uniqueWordsMovementResults[firstWord + " " + secondWord] = savedSequence
+
+					elif secondWord in nonUniqueWords:
+						movementResults[firstWord + " " + nonUniqueWords[secondWord]] = savedSequence
+
+
+						# saves in order to reference it for future
+						uniqueWordsMovementResults[firstWord + " " + secondWord] = savedSequence
+					else:
+						movementResults[firstWord + " " + secondWord] = savedSequence
 
 		print(movementResults)
+		print(nonUniqueWords)
 		exit()
 		text.close()
 	return posVectors, environmentVectors, lexicalVectors
 
 if __name__ == "__main__":
-	stopWords = generateStopWords('stopwords.txt')
 	posVectors = {}
 	environmentVectors = {}
 	lexicalVectors = {}
 
-	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test.txt', posVectors, environmentVectors, lexicalVectors, stopWords)
+	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test2.txt', posVectors, environmentVectors, lexicalVectors)
