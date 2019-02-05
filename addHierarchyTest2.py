@@ -12,6 +12,10 @@ def generateStopWords(filepath):
 def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVector, downVector):
 	text = open(filePath)
 
+	dogBark = 0
+	catPurr = 0
+	randomVector = np.random.choice([-1, 1], size=10000)
+
 	parsedTree = ""
 	for count, line in enumerate(text):
 		parsedTree += line
@@ -101,7 +105,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 					movementVector = upVector
 					upDownCount += 1
 				else:
-					movementVector *= np.concatenate([upVector[upDownCount:], upVector[:upDownCount]])
+					movementVector *= np.concatenate([upVector[upDownCount * 17:], upVector[:upDownCount * 17]])
 					upDownCount += 1
 
 				movement.append("up")
@@ -111,7 +115,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 					movementVector = downVector
 					upDownCount += 1
 				else:
-					movementVector *= np.concatenate([downVector[upDownCount:], downVector[:upDownCount]])
+					movementVector *= np.concatenate([downVector[upDownCount * 17:], downVector[:upDownCount * 17]])
 					upDownCount += 1
 
 				movement.append("down")
@@ -158,14 +162,14 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 								movementVector = upVector
 								upDownCount += 1
 							else:
-								movementVector *= np.concatenate([upVector[upDownCount:], upVector[:upDownCount]])
+								movementVector *= np.concatenate([upVector[upDownCount * 17:], upVector[:upDownCount * 17]])
 								upDownCount += 1
 						elif eachDirection == "down":
 							if movementVector == None:
 								movementVector = downVector
 								upDownCount += 1
 							else:
-								movementVector *= np.concatenate([downVector[upDownCount:], downVector[:upDownCount]])
+								movementVector *= np.concatenate([downVector[upDownCount * 17:], downVector[:upDownCount * 17]])
 								upDownCount += 1
 
 					firstWordOG = firstWord
@@ -216,14 +220,14 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 								movementVector = upVector
 								upDownCount += 1
 							else:
-								movementVector *= np.concatenate([upVector[upDownCount:], upVector[:upDownCount]])
+								movementVector *= np.concatenate([upVector[upDownCount * 17:], upVector[:upDownCount * 17]])
 								upDownCount += 1
 						elif eachDirection == "down":
 							if movementVector == None:
 								movementVector = downVector
 								upDownCount += 1
 							else:
-								movementVector *= np.concatenate([downVector[upDownCount:], downVector[:upDownCount]])
+								movementVector *= np.concatenate([downVector[upDownCount * 17:], downVector[:upDownCount * 17]])
 								upDownCount += 1
 
 					firstWordOG = firstWord
@@ -235,10 +239,19 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 
 					lexicalVectors[firstWordOG] += environmentVectors[secondWordOG] * posVectors[secondWordPos] * movementVector
 
+					if firstWordOG == "dog" and secondWordOG == "bark":
+						dogBark = movementVector
+					if firstWordOG == "cat" and secondWordOG == "purr":
+						catPurr = movementVector
+
 		print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
 	
 	text.close()
+
+	print("dogBark", dogBark)
+	print("catPurr", catPurr)
+	print((dogBark == catPurr).all())
 	return posVectors, environmentVectors, lexicalVectors
 
 def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVectors, numResults=1):
