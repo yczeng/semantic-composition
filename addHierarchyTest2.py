@@ -14,8 +14,6 @@ def generateStopWords(filepath):
 def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVector, downVector):
 	text = open(filePath)
 
-	dogBark = 0
-	catPurr = 0
 	randomVector = np.random.choice([-1, 1], size=10000)
 
 	upVectorPermutations = {}
@@ -208,37 +206,16 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 
 					if movement in movementVectors:
 						movementVector = movementVectors[movement]
-
-						if firstWordOG == "dog" and secondWordOG == "bark":
-							print("DOG BARK MOVEMENT IS", movement)
-							dogBark = movementVector
-							print(movementVector)
-						if firstWordOG == "cat" and secondWordOG == "purr":
-							print("CAT PURR MOVEMENT IS", movement)
-							catPurr = movementVector
-							print(movementVector)
 					else:
 						movementVectors[movement] = np.random.choice([-1, 1], size=10000)
 						movementVector = movementVectors[movement]
 
 					lexicalVectors[firstWordOG] += environmentVectors[secondWordOG] * posVectors[secondWordPos] * movementVector
 
-					# if firstWordOG == "dog" and secondWordOG == "bark":
-					# 	print("DOGBARK MOVEMENT", movement)
-					# 	dogBark = movementVector
-					# if firstWordOG == "cat" and secondWordOG == "purr":
-					# 	print("CATPURR MOVEMENT", movement)
-					# 	catPurr = movementVector
-
 		print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
 	
 	text.close()
-
-	print("dogBark", dogBark)
-	print("catPurr", catPurr)
-	print((dogBark == catPurr).all())
-	# print(dogBark == catPurr)
 	return posVectors, environmentVectors, lexicalVectors
 
 def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVectors, numResults=1):
