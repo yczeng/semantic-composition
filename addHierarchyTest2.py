@@ -21,6 +21,8 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 	upVectorPermutations = {}
 	downVectorPermutations = {}
 
+	movementVectors = {}
+
 	parsedTree = ""
 	for count, line in enumerate(text):
 		parsedTree += line
@@ -45,8 +47,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 		sequence = []
 		# list of all the words, pos, and 
 		sentenceTuple = []
-
-		movementVectors = {}
 
 		for line in parsedTree:
 			tokenizedLine = list(filter(None, line.replace("\n", "").replace(" )", ")").split(" ")))
@@ -134,20 +134,19 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 				secondWord = sentenceTuple[j][0]
 				secondWordPos = sentenceTuple[j][1]
 
+				movement = ""
 				# check that it's not the same word
 				if firstWord == secondWord or (firstWord + " " + secondWord) in movementResults:
 					continue
-
 				# check if flipped exists
 				elif secondWord + " " + firstWord in movementResults:
-					newMovement = ""
 					for direction in movementResults[secondWord + " " + firstWord]:
 						if direction == "1":
-							newMovement = "0" + newMovement
+							movement = "0" + movement
 						else:
-							newMovement = "1" + newMovement
+							movement = "1" + movement
 
-					movementResults[firstWord + " " + secondWord] = newMovement
+					movementResults[firstWord + " " + secondWord] = movement
 
 					movementVector = None
 					upDownCount = 0
@@ -194,11 +193,10 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 							upCount += 1
 
 					minUpDown = min(upCount, downCount)
-					savedSequence = getSequence1[:-minUpDown] + getSequence2[minUpDown:]
-					movementResults[firstWord + " " + secondWord] = savedSequence
+					movement = getSequence1[:-minUpDown] + getSequence2[minUpDown:]
+					movementResults[firstWord + " " + secondWord] = movement
 
-					movementVector = None
-					upDownCount = 0
+					# print("SAVED SEQUENCE IS", movement)
 
 					firstWordOG = firstWord
 					secondWordOG = secondWord
@@ -210,18 +208,27 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 
 					if movement in movementVectors:
 						movementVector = movementVectors[movement]
+
+						if firstWordOG == "dog" and secondWordOG == "bark":
+							print("DOG BARK MOVEMENT IS", movement)
+							dogBark = movementVector
+							print(movementVector)
+						if firstWordOG == "cat" and secondWordOG == "purr":
+							print("CAT PURR MOVEMENT IS", movement)
+							catPurr = movementVector
+							print(movementVector)
 					else:
 						movementVectors[movement] = np.random.choice([-1, 1], size=10000)
 						movementVector = movementVectors[movement]
 
 					lexicalVectors[firstWordOG] += environmentVectors[secondWordOG] * posVectors[secondWordPos] * movementVector
 
-					if firstWordOG == "dog" and secondWordOG == "bark":
-						print("DOGBARK MOVEMENT", movement)
-						dogBark = movementVector
-					if firstWordOG == "cat" and secondWordOG == "purr":
-						print("CATPURR MOVEMENT", movement)
-						catPurr = movementVector
+					# if firstWordOG == "dog" and secondWordOG == "bark":
+					# 	print("DOGBARK MOVEMENT", movement)
+					# 	dogBark = movementVector
+					# if firstWordOG == "cat" and secondWordOG == "purr":
+					# 	print("CATPURR MOVEMENT", movement)
+					# 	catPurr = movementVector
 
 		print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
@@ -231,6 +238,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 	print("dogBark", dogBark)
 	print("catPurr", catPurr)
 	print((dogBark == catPurr).all())
+	# print(dogBark == catPurr)
 	return posVectors, environmentVectors, lexicalVectors
 
 def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVectors, numResults=1):
