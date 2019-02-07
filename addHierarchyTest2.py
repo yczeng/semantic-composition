@@ -11,15 +11,8 @@ def generateStopWords(filepath):
 
 
 
-def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVector, downVector):
+def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, movementVectors):
 	text = open(filePath)
-
-	randomVector = np.random.choice([-1, 1], size=10000)
-
-	upVectorPermutations = {}
-	downVectorPermutations = {}
-
-	movementVectors = {}
 
 	parsedTree = ""
 	for count, line in enumerate(text):
@@ -84,8 +77,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 					sequence.append(depth)
 					oldDepth = depth
 
-		# print(sentenceTuple)
-
 		count = 0
 		movementResults = {}
 		print(sentenceTuple)
@@ -108,7 +99,9 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 				movement += "0"
 
 			movementResults[firstWord + " " + secondWord] = movement
-			# add to high dimensional vectors also here.
+			if movement not in movementVectors:
+				movementVectors[movement] = np.random.choice([-1, 1], size=10000)
+			movementVector = movementVectors[movement]
 
 			if firstWord in nonUniqueWords:
 				firstWord = nonUniqueWords[firstWord]
@@ -116,12 +109,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 				secondWord = nonUniqueWords[secondWord]
 
 			print("Saved lexicalVectors", firstWord, ":", secondWord)
-
-			if movement in movementVectors:
-				movementVector = movementVectors[movement]
-			else:
-				movementVectors[movement] = np.random.choice([-1, 1], size=10000)
-				movementVector = movementVectors[movement]
 
 			lexicalVectors[firstWord] += environmentVectors[secondWord] * posVectors[secondWordPos] * movementVector
 
@@ -145,24 +132,16 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 							movement = "1" + movement
 
 					movementResults[firstWord + " " + secondWord] = movement
-
-					movementVector = None
-					upDownCount = 0
-
-					firstWordOG = firstWord
-					secondWordOG = secondWord
-					if firstWord in nonUniqueWords:
-						firstWordOG = nonUniqueWords[firstWord]
-					if secondWord in nonUniqueWords:
-						secondWordOG = nonUniqueWords[secondWord]
-
-					if movement in movementVectors:
-						movementVector = movementVectors[movement]
-					else:
+					if movement not in movementVectors:
 						movementVectors[movement] = np.random.choice([-1, 1], size=10000)
-						movementVector = movementVectors[movement]
+					movementVector = movementVectors[movement]
 
-					lexicalVectors[firstWordOG] += environmentVectors[secondWordOG] * posVectors[secondWordPos] * movementVector
+					if firstWord in nonUniqueWords:
+						firstWord = nonUniqueWords[firstWord]
+					if secondWord in nonUniqueWords:
+						secondWord = nonUniqueWords[secondWord]
+
+					lexicalVectors[firstWord] += environmentVectors[secondWord] * posVectors[secondWordPos] * movementVector
 
 				else:
 					# print(firstWord + " " + secondWord)
@@ -193,30 +172,22 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, upVect
 					minUpDown = min(upCount, downCount)
 					movement = getSequence1[:-minUpDown] + getSequence2[minUpDown:]
 					movementResults[firstWord + " " + secondWord] = movement
-
-					# print("SAVED SEQUENCE IS", movement)
-
-					firstWordOG = firstWord
-					secondWordOG = secondWord
-					if firstWord in nonUniqueWords:
-						firstWordOG = nonUniqueWords[firstWord]
-					if secondWord in nonUniqueWords:
-						secondWordOG = nonUniqueWords[secondWord]
-
-
-					if movement in movementVectors:
-						movementVector = movementVectors[movement]
-					else:
+					if movement not in movementVectors:
 						movementVectors[movement] = np.random.choice([-1, 1], size=10000)
-						movementVector = movementVectors[movement]
+					movementVector = movementVectors[movement]
 
-					lexicalVectors[firstWordOG] += environmentVectors[secondWordOG] * posVectors[secondWordPos] * movementVector
+					if firstWord in nonUniqueWords:
+						firstWord = nonUniqueWords[firstWord]
+					if secondWord in nonUniqueWords:
+						secondWord = nonUniqueWords[secondWord]
+
+					lexicalVectors[firstWord] += environmentVectors[secondWord] * posVectors[secondWordPos] * movementVector
 
 		print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
 	
 	text.close()
-	return posVectors, environmentVectors, lexicalVectors
+	return posVectors, environmentVectors, lexicalVectors, movementVectors
 
 def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVectors, numResults=1):
 	f = lexicalVectors[concept1] * lexicalVectors[concept2]
@@ -239,12 +210,9 @@ if __name__ == "__main__":
 	posVectors = {}
 	environmentVectors = {}
 	lexicalVectors = {}
-	upVector = np.random.choice([-1, 1], size=10000)
-	downVector = np.random.choice([-1, 1], size=10000)
+	movementVectors = {}
 
-	# posVectors, environmentVectors, lexicalVectors = addTreeBank('data/test2.txt', posVectors, environmentVectors, lexicalVectors, upVector, downVector)
-
-	posVectors, environmentVectors, lexicalVectors = addTreeBank('data/catDog.txt', posVectors, environmentVectors, lexicalVectors, upVector, downVector)
+	posVectors, environmentVectors, lexicalVectors, movementVectors = addTreeBank('data/catDog.txt', posVectors, environmentVectors, lexicalVectors, movementVectors)
 	result = grabAnalogy('dog', 'cat', 'purr', lexicalVectors, environmentVectors)
 	print("analogy of cat:purr is dog:", result)
 	print(lexicalVectors["dog"])
