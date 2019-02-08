@@ -21,7 +21,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 		if "(. .)" not in line and "(. ?)" not in line and "(: :)" not in line:
 			continue
 
-		print(parsedTree)
+		# print(parsedTree)
 		# the end of the parsedTree has been reached
 		depth = 0
 		oldDepth = 0
@@ -63,11 +63,11 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 
 					# create 10,000 dimensional vectors
 					if word not in environmentVectors:
-						environmentVectors[word] = np.random.choice([-1, 1], size=10000)
+						environmentVectors[word] = np.random.choice([-1, 1], size=100000)
 					if word not in lexicalVectors:
-						lexicalVectors[word] = np.zeros(10000)
+						lexicalVectors[word] = np.zeros(100000)
 					if pos not in posVectors:
-						posVectors[pos] = np.random.choice([-1, 1], size=10000)
+						posVectors[pos] = np.random.choice([-1, 1], size=100000)
 
 					#reset sequence for next
 					sequence = []
@@ -79,7 +79,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 
 		count = 0
 		movementResults = {}
-		print(sentenceTuple)
+		# print(sentenceTuple)
 
 		# stores sequences first
 		for i in range(1, len(sentenceTuple)):
@@ -100,7 +100,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 
 			movementResults[firstWord + " " + secondWord] = movement
 			if movement not in movementVectors:
-				movementVectors[movement] = np.random.choice([-1, 1], size=10000)
+				movementVectors[movement] = np.random.choice([-1, 1], size=100000)
 			movementVector = movementVectors[movement]
 
 			if firstWord in nonUniqueWords:
@@ -108,9 +108,12 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 			if secondWord in nonUniqueWords:
 				secondWord = nonUniqueWords[secondWord]
 
-			print("Saved lexicalVectors", firstWord, ":", secondWord)
+			# print("Saved lexicalVectors", firstWord, ":", secondWord)
 
 			lexicalVectors[firstWord] += environmentVectors[secondWord] * posVectors[secondWordPos] * movementVector
+
+			if (firstWord == "steve" and secondWord == "mcqueen") or (firstWord == "george" and secondWord == "crowninshield"):
+				print(firstWord, secondWord, secondWordPos, movement, movementVector)
 
 		for i in range(len(sentenceTuple)):
 			for j in range(len(sentenceTuple)):
@@ -133,7 +136,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 
 					movementResults[firstWord + " " + secondWord] = movement
 					if movement not in movementVectors:
-						movementVectors[movement] = np.random.choice([-1, 1], size=10000)
+						movementVectors[movement] = np.random.choice([-1, 1], size=100000)
 					movementVector = movementVectors[movement]
 
 					if firstWord in nonUniqueWords:
@@ -173,7 +176,7 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 					movement = getSequence1[:-minUpDown] + getSequence2[minUpDown:]
 					movementResults[firstWord + " " + secondWord] = movement
 					if movement not in movementVectors:
-						movementVectors[movement] = np.random.choice([-1, 1], size=10000)
+						movementVectors[movement] = np.random.choice([-1, 1], size=100000)
 					movementVector = movementVectors[movement]
 
 					if firstWord in nonUniqueWords:
@@ -183,20 +186,24 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 
 					lexicalVectors[firstWord] += environmentVectors[secondWord] * posVectors[secondWordPos] * movementVector
 
-		print("MOVEMENT RESULTS", movementResults)
+		# print("MOVEMENT RESULTS", movementResults)
 		parsedTree = ""
 	
 	text.close()
 	return posVectors, environmentVectors, lexicalVectors, movementVectors
 
 def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVectors, numResults=1):
+	concept1 = concept1.lower()
+	concept2 = concept2.lower()
+	analogousTo = analogousTo.lower()
+
 	f = lexicalVectors[concept1] * lexicalVectors[concept2]
 	analogyResults = {}
 	for word in environmentVectors:
 		if word != analogousTo:
 			analogyResults[word] = np.dot(environmentVectors[word],	environmentVectors[analogousTo] * f)
 
-	print(analogyResults)
+	# print(analogyResults)
 	results = []
 	for i in range(numResults):
 		word = max(analogyResults, key=analogyResults.get)
@@ -212,7 +219,11 @@ if __name__ == "__main__":
 	lexicalVectors = {}
 	movementVectors = {}
 
-	posVectors, environmentVectors, lexicalVectors, movementVectors = addTreeBank('data/catDog.txt', posVectors, environmentVectors, lexicalVectors, movementVectors)
-	result = grabAnalogy('dog', 'cat', 'purr', lexicalVectors, environmentVectors)
-	print("analogy of cat:purr is dog:", result)
-	print(lexicalVectors["dog"])
+	# posVectors, environmentVectors, lexicalVectors, movementVectors = addTreeBank('data/catDog.txt', posVectors, environmentVectors, lexicalVectors, movementVectors)
+	# result = grabAnalogy('dog', 'cat', 'purr', lexicalVectors, environmentVectors)
+	# print("analogy of cat:purr is dog:", result)
+
+	posVectors, environmentVectors, lexicalVectors, movementVectors = addTreeBank('data/bnc_1000_gold_trees_09', posVectors, environmentVectors, lexicalVectors, movementVectors)
+
+	result = grabAnalogy('Steve', 'George', 'McQueen', lexicalVectors, environmentVectors, 20)
+	print("analogy of Steve:McQueen is George:", result)
