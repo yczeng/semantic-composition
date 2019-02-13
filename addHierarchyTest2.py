@@ -203,7 +203,7 @@ def grabAnalogy(concept1, concept2, analogousTo, lexicalVectors, environmentVect
 		if word != analogousTo:
 			analogyResults[word] = np.dot(environmentVectors[word],	environmentVectors[analogousTo] * f)
 
-	# print(analogyResults)
+	print(analogyResults)
 	results = []
 	for i in range(numResults):
 		word = max(analogyResults, key=analogyResults.get)
@@ -227,3 +227,35 @@ if __name__ == "__main__":
 
 	result = grabAnalogy('Steve', 'George', 'McQueen', lexicalVectors, environmentVectors, 20)
 	print("analogy of Steve:McQueen is George:", result)
+
+
+	print("Done loading treebanks!")
+	print("----------------------------------------------\n\n\n")
+	print("Format: concept1: idea1 :: concept2: idea2.")
+	print("\n\n\n----------------------------------------------")
+
+	keepRolling = True
+	while keepRolling:
+		concept1 = input("Please enter concept1: \n").lower()
+		idea1 = input("Please enter idea1: \n").lower()
+		concept2 = input("Please enter concept2: \n").lower()
+		numResults = input("How many results?\n")
+
+		try:
+			results = grabAnalogy(concept1, concept2, idea1, lexicalVectors, environmentVectors, int(numResults))
+			print(concept1 + ": " + idea1 + " :: " + concept2 + ": \n")
+			for result in results:
+				print(result)
+
+		except Exception:
+		    traceback.print_exc()
+		
+		print("\n")
+
+
+	with open('output/vectors.txt', 'w') as writeLexicon:
+		for vector in lexicalVectors:
+			string = str(vector)
+			for number in lexicalVectors[vector]:
+				string += " " + str(number)
+			writeLexicon.write(string + "\n")
