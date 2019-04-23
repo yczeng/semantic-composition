@@ -1,6 +1,6 @@
 # semantic-compositions
 
-This project encodes relationships between words in parse trees using high dimensional vectors and random indexing. It then uses these stored relationships to draw analogies between different words.
+This project encodes hierarchical relationships between words in parse trees using high dimensional vectors and random indexing. It then uses these stored relationships to draw analogies between different words.
 
 # How it works
 Newly encountered words are generated a random, binary vector containing -1s and 1s that is stored as an environment vector. Each newly generated word additionally is given a memory vector that is the linear combination of the environment vectors of surrounding words multiplied by their part of speech and their structural relationship (each of which is also symbolically represented by a random, binary vector of -1s and 1s).
