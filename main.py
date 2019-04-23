@@ -18,10 +18,11 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 	for count, line in enumerate(text):
 		parsedTree += line
 
-		if "(. .)" not in line and "(. ?)" not in line and "(: :)" not in line:
+		if "(. .)" not in line and "(. ?)" not in line:
 			continue
 
-		# print(parsedTree)
+		print(parsedTree)
+		print("end of parsedTree")
 		# the end of the parsedTree has been reached
 		depth = 0
 		oldDepth = 0
@@ -111,9 +112,6 @@ def addTreeBank(filePath, posVectors, environmentVectors, lexicalVectors, moveme
 			# print("Saved lexicalVectors", firstWord, ":", secondWord)
 
 			lexicalVectors[firstWord] += environmentVectors[secondWord] * posVectors[secondWordPos] * movementVector
-
-			if (firstWord == "steve" and secondWord == "mcqueen") or (firstWord == "george" and secondWord == "crowninshield"):
-				print(firstWord, secondWord, secondWordPos, movement, movementVector)
 
 		for i in range(len(sentenceTuple)):
 			for j in range(len(sentenceTuple)):
@@ -223,10 +221,12 @@ if __name__ == "__main__":
 	# result = grabAnalogy('dog', 'cat', 'purr', lexicalVectors, environmentVectors)
 	# print("analogy of cat:purr is dog:", result)
 
-	posVectors, environmentVectors, lexicalVectors, movementVectors = addTreeBank('data/bnc_1000_gold_trees_09', posVectors, environmentVectors, lexicalVectors, movementVectors)
+	posVectors, environmentVectors, lexicalVectors, movementVectors = addTreeBank('data/bnc_gold_test.txt', posVectors, environmentVectors, lexicalVectors, movementVectors)
 
-	result = grabAnalogy('Steve', 'George', 'McQueen', lexicalVectors, environmentVectors, 20)
-	print("analogy of Steve:McQueen is George:", result)
+	# result = grabAnalogy('Steve', 'George', 'McQueen', lexicalVectors, environmentVectors, 20)
+	# print("analogy of Steve:McQueen is George:", result)
+
+	# posVectors, environmentVectors, lexicalVectors, movementVectors = addTreeBank('data/test3.txt', posVectors, environmentVectors, lexicalVectors, movementVectors)
 
 
 	print("Done loading treebanks!")
@@ -253,9 +253,9 @@ if __name__ == "__main__":
 		print("\n")
 
 
-	with open('output/vectors.txt', 'w') as writeLexicon:
-		for vector in lexicalVectors:
-			string = str(vector)
-			for number in lexicalVectors[vector]:
-				string += " " + str(number)
-			writeLexicon.write(string + "\n")
+	# with open('output/vectors.txt', 'w') as writeLexicon:
+	# 	for vector in lexicalVectors:
+	# 		string = str(vector)
+	# 		for number in lexicalVectors[vector]:
+	# 			string += " " + str(number)
+	# 		writeLexicon.write(string + "\n")
