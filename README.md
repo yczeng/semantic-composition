@@ -15,5 +15,9 @@ To use, run `main.py`. This is currently running parse trees from [1000 sentence
 
 The program will prompt you to input concept1, idea1, concept2, and number of results respectively. These represent m_1, s_2, and m_2 respectively where the analogy you want to find from the data is "m_1 is to s_2 as m_2 is to what?"
 
+Here is a sample output:
+
+![sample](sample1.png)
+
 # License
 semantic-compositions is available under the MIT license. See `LICENSE` file in the repository.
